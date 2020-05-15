@@ -1,0 +1,94 @@
+import random
+
+
+def create_dictionary(purpose, trump = '', led = ''):
+    card_dictionary = {1: 'AS', 2: 'KS', 3: 'QS', 4: 'JS', 5: 'TS', 6: '9S',
+                       7: 'AC', 8: 'KC', 9: 'QC', 10: 'JC', 11: 'TC', 12: '9C',
+                       13: 'AH', 14: 'KH', 15: 'QH', 16: 'JH', 17: 'TH', 18: '9H',
+                       19: 'AD', 20: 'KD', 21: 'QD', 22: 'JD', 23: 'TD', 24: '9D'}
+    trump_adjacent = {'D': 'H', 'H':'D', 'S': 'C', 'C': 'S'}
+    suits = ['D', 'H', 'S', 'C']
+    non_trump_suits = {'D': ['C', 'S'], 'H': ['C', 'S'], 'S': ['H', 'D'], 'C': ['H', 'D']}
+
+    if purpose == 'dealing':
+        card_dictionary1 = card_dictionary
+
+    if purpose == 'pre-play' or purpose == 'post-play':
+        trump_adj_suit = trump_adjacent[trump]
+        non_trumps = non_trump_suits[trump]
+        trumps = ['J' + trump, 'J' + trump_adj_suit, 'A' + trump, 'K' + trump, 'Q' + trump, 'T' + trump, '9' + trump]
+        trump_adj = ['A' + trump_adj_suit, 'K' + trump_adj_suit, 'Q' + trump_adj_suit, 'T' + trump_adj_suit, '9' + trump_adj_suit]
+        non_trump_1 = ['A' + non_trumps[0], 'K' + non_trumps[0], 'Q' + non_trumps[0],  'J' + non_trumps[0], 'T' + non_trumps[0], '9' + non_trumps[0]]
+        non_trump_2 = ['A' + non_trumps[1], 'K' + non_trumps[1], 'Q' + non_trumps[1], 'J' + non_trumps[1], 'T' + non_trumps[1], '9' + non_trumps[1]]
+        values = []
+        for i in range(1, 8):
+            values.append([1,i])
+        values += [[2, 1], [2, 2], [2, 3], [2, 5], [2,6], [2, 1], [2, 2], [2, 3],[2, 4], [2, 5], [2,6], [2, 1], [2, 2], [2, 3],[2, 4], [2, 5], [2,6]]
+        all_cards = trumps + trump_adj + non_trump_1 + non_trump_2
+        card_dictionary1 = {keys:new_values for keys, new_values in zip(all_cards, values)}
+
+        if purpose == 'post-play':
+            if led == trump_adj_suit:
+                for i in range(12, 24):
+                    values[i][0] = 3
+            if led in non_trumps:
+                for i in range(7, 18):
+                    values[i][0] = 3
+                for i in range(18, 24):
+                    values[i][0] = 2
+                if led == non_trumps[0]:
+                    all_cards = trumps + trump_adj + non_trump_2 + non_trump_1
+            card_dictionary1 = {keys: new_values for keys, new_values in zip(all_cards, values)}
+
+    return card_dictionary1
+
+
+def deal_cards():
+    player1 = []
+    player2 = []
+    player3 = []
+    player4 = []
+    up_card = ''
+    lst = list(range(1, 25))
+    random.shuffle(lst)
+    new_dict = create_dictionary('dealing')
+    for i in range(1, 6):
+        player1.append(new_dict[lst[i]])
+        player2.append(new_dict[lst[i + 5]])
+        player3.append(new_dict[lst[i + 10]])
+        player4.append(new_dict[lst[i + 15]])
+    up_card = new_dict[lst[21]]
+    hands = [player1, player2, player3, player4, up_card]
+    return hands
+
+
+def can_play(hand, led, trump):
+    trump_adjacent = {'D': 'H', 'H': 'D', 'S': 'C', 'C': 'S'}
+    trump_adj = trump_adjacent[trump]
+    playable_cards = []
+    for card in hand:
+        if led == trump and (card[1] == led or card == 'J' + trump_adj):
+            playable_cards.append(card)
+        if led == trump_adj and card[1] == led and not card[0] == 'J':
+            playable_cards.append(card)
+        if not(led == trump or led == trump_adj) and card[1] == led:
+            playable_cards.append(card)
+    if not playable_cards:
+        playable_cards = hand
+    return playable_cards
+
+
+def determine_trick_winner(played_cards, trump, led):
+    value_dict = create_dictionary('post-play', trump, led)
+    played_cards_value = []
+    for i in played_cards:
+        played_cards_value.append(value_dict[i])
+    winner = played_cards_value.index(min(played_cards_value)) + 1
+    print('player{} won the trick'.format(winner))
+    return winner
+
+
+def decide_first_dealer():
+    rand = random.randint(1,4)
+    print('player{} will deal first'.format(rand))
+    return rand
