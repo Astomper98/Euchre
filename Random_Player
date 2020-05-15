@@ -1,0 +1,57 @@
+import Euchre_game
+import random
+
+suits = ['S', 'C', 'H', 'D']
+suits_from_letters = {'S': 'Spades', 'C': 'Clubs', 'D': 'Diamonds', 'H': 'Hearts'}
+
+
+class RandomPlayer:
+    suits = ['S', 'C', 'H', 'D']
+
+    def __init__(self, hand, up_card):
+        self.hand = hand
+        self.up_card = up_card
+
+    def lead_trick(self):
+        length = len(self.hand)
+        card_played = self.hand[random.randint(0, length - 1)]
+        self.hand.remove(card_played)
+        return card_played
+
+    def follow_trick(self, led, trump):
+        playable_cards = Euchre_game.can_play(self.hand, led, trump)
+        length = len(playable_cards)
+        card_played = playable_cards[random.randint(0, length - 1)]
+        self.hand.remove(card_played)
+        return card_played
+
+    def pick_or_pass(self, up_card):
+        rand = random.randint(1,4)
+        if rand == 1:
+            print('Pick it up')
+            return True
+        else:
+            print('Pass')
+            return False
+
+    def call_or_pass(self, must_call=False):
+        rand = random.randint(1, 4)
+        if rand == 1 or must_call:
+            suits1 = ['S', 'C', 'H', 'D']
+            suits1.remove(self.up_card[1])
+            random.shuffle(suits1)
+            print(suits_from_letters[suits1[0]])
+            return suits1[0]
+        else:
+            print('Pass')
+            return False
+
+    def pick_and_replace(self):
+        self.hand += [self.up_card]
+        self.hand.remove(self.hand[random.randint(0, 5)])
+
+    def give_hand(self):
+        return self.hand
+
+
+
