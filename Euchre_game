@@ -92,3 +92,5 @@ def decide_first_dealer():
     rand = random.randint(1,4)
     print('player{} will deal first'.format(rand))
     return rand
+
+
