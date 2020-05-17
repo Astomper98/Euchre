@@ -1,12 +1,15 @@
 import random
 
 
-def create_dictionary(purpose, trump = '', led = ''):
+# Creates a dictionary for a few purposes. Dealing is just all the cards to make it easier to randomize the cards.
+# Pre-play gives the trumps as the first tier then the rest as a second tier. Not even sure I use this.
+# Post-play is after a lead it separates into 3 tiers: 1) trump 2) lead suit 3) others. Used for scoring
+def create_dictionary(purpose, trump='', led=''):
     card_dictionary = {1: 'AS', 2: 'KS', 3: 'QS', 4: 'JS', 5: 'TS', 6: '9S',
                        7: 'AC', 8: 'KC', 9: 'QC', 10: 'JC', 11: 'TC', 12: '9C',
                        13: 'AH', 14: 'KH', 15: 'QH', 16: 'JH', 17: 'TH', 18: '9H',
                        19: 'AD', 20: 'KD', 21: 'QD', 22: 'JD', 23: 'TD', 24: '9D'}
-    trump_adjacent = {'D': 'H', 'H':'D', 'S': 'C', 'C': 'S'}
+    trump_adjacent = {'D': 'H', 'H': 'D', 'S': 'C', 'C': 'S'}
     suits = ['D', 'H', 'S', 'C']
     non_trump_suits = {'D': ['C', 'S'], 'H': ['C', 'S'], 'S': ['H', 'D'], 'C': ['H', 'D']}
 
@@ -17,15 +20,19 @@ def create_dictionary(purpose, trump = '', led = ''):
         trump_adj_suit = trump_adjacent[trump]
         non_trumps = non_trump_suits[trump]
         trumps = ['J' + trump, 'J' + trump_adj_suit, 'A' + trump, 'K' + trump, 'Q' + trump, 'T' + trump, '9' + trump]
-        trump_adj = ['A' + trump_adj_suit, 'K' + trump_adj_suit, 'Q' + trump_adj_suit, 'T' + trump_adj_suit, '9' + trump_adj_suit]
-        non_trump_1 = ['A' + non_trumps[0], 'K' + non_trumps[0], 'Q' + non_trumps[0],  'J' + non_trumps[0], 'T' + non_trumps[0], '9' + non_trumps[0]]
-        non_trump_2 = ['A' + non_trumps[1], 'K' + non_trumps[1], 'Q' + non_trumps[1], 'J' + non_trumps[1], 'T' + non_trumps[1], '9' + non_trumps[1]]
+        trump_adj = ['A' + trump_adj_suit, 'K' + trump_adj_suit, 'Q' + trump_adj_suit, 'T' + trump_adj_suit,
+                     '9' + trump_adj_suit]
+        non_trump_1 = ['A' + non_trumps[0], 'K' + non_trumps[0], 'Q' + non_trumps[0], 'J' + non_trumps[0],
+                       'T' + non_trumps[0], '9' + non_trumps[0]]
+        non_trump_2 = ['A' + non_trumps[1], 'K' + non_trumps[1], 'Q' + non_trumps[1], 'J' + non_trumps[1],
+                       'T' + non_trumps[1], '9' + non_trumps[1]]
         values = []
         for i in range(1, 8):
-            values.append([1,i])
-        values += [[2, 1], [2, 2], [2, 3], [2, 5], [2,6], [2, 1], [2, 2], [2, 3],[2, 4], [2, 5], [2,6], [2, 1], [2, 2], [2, 3],[2, 4], [2, 5], [2,6]]
+            values.append([1, i])
+        values += [[2, 1], [2, 2], [2, 3], [2, 5], [2, 6], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 1],
+                   [2, 2], [2, 3], [2, 4], [2, 5], [2, 6]]
         all_cards = trumps + trump_adj + non_trump_1 + non_trump_2
-        card_dictionary1 = {keys:new_values for keys, new_values in zip(all_cards, values)}
+        card_dictionary1 = {keys: new_values for keys, new_values in zip(all_cards, values)}
 
         if purpose == 'post-play':
             if led == trump_adj_suit:
@@ -42,7 +49,7 @@ def create_dictionary(purpose, trump = '', led = ''):
 
     return card_dictionary1
 
-
+# Uses the dealing card dictionary to randomly assign each player 5 cards and 1 up card
 def deal_cards():
     player1 = []
     player2 = []
@@ -62,6 +69,7 @@ def deal_cards():
     return hands
 
 
+# Determines which of a players cards can be played based on what was led
 def can_play(hand, led, trump):
     trump_adjacent = {'D': 'H', 'H': 'D', 'S': 'C', 'C': 'S'}
     trump_adj = trump_adjacent[trump]
@@ -71,13 +79,14 @@ def can_play(hand, led, trump):
             playable_cards.append(card)
         if led == trump_adj and card[1] == led and not card[0] == 'J':
             playable_cards.append(card)
-        if not(led == trump or led == trump_adj) and card[1] == led:
+        if not (led == trump or led == trump_adj) and card[1] == led:
             playable_cards.append(card)
     if not playable_cards:
         playable_cards = hand
     return playable_cards
 
 
+# Determines who won the trick based on the cards played, what was led, and what is trump
 def determine_trick_winner(played_cards, trump, led):
     value_dict = create_dictionary('post-play', trump, led)
     played_cards_value = []
@@ -88,8 +97,9 @@ def determine_trick_winner(played_cards, trump, led):
     return winner
 
 
+# Randomly decides who deals first
 def decide_first_dealer():
-    rand = random.randint(1,4)
+    rand = random.randint(1, 4)
     print('player{} will deal first'.format(rand))
     return rand
 
