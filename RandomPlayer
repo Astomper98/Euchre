@@ -5,19 +5,23 @@ suits = ['S', 'C', 'H', 'D']
 suits_from_letters = {'S': 'Spades', 'C': 'Clubs', 'D': 'Diamonds', 'H': 'Hearts'}
 
 
+# Player that randomly calls based on a probability and plays randomly without renegging
 class RandomPlayer:
     suits = ['S', 'C', 'H', 'D']
 
+    # Initializes the players hand and the card facing up
     def __init__(self, hand, up_card):
         self.hand = hand
         self.up_card = up_card
 
+    # Randomly leads a card with equal probability and returns the card played
     def lead_trick(self):
         length = len(self.hand)
         card_played = self.hand[random.randint(0, length - 1)]
         self.hand.remove(card_played)
         return card_played
 
+    # Establishes which cards within the hand can be played and randomly selects one and returns that card
     def follow_trick(self, led, trump):
         playable_cards = Euchre_game.can_play(self.hand, led, trump)
         length = len(playable_cards)
@@ -25,6 +29,8 @@ class RandomPlayer:
         self.hand.remove(card_played)
         return card_played
 
+    # Decides with 25% probability whether to tell the dealer to pick it up returns
+    # True/False to determine whether to keep going
     def pick_or_pass(self, up_card, dealer):
         rand = random.randint(1, 4)
         if rand == 1:
@@ -34,6 +40,8 @@ class RandomPlayer:
             print('Pass')
             return False
 
+    # Determines with 25% probability whether to call. If calling randomly selects one of the 3 available suits.
+    # Returns either the suit or False if passing
     def call_or_pass(self, must_call=False):
         rand = random.randint(1, 4)
         if rand == 1 or must_call:
@@ -46,15 +54,21 @@ class RandomPlayer:
             print('Pass')
             return False
 
+    # If the random player is told to pick it up it randomly selects one of now six cards to replace
     def pick_and_replace(self):
         self.hand += [self.up_card]
         self.hand.remove(self.hand[random.randint(0, 5)])
 
+    # Not used yet but just returns the hand for checking purposes
     def give_hand(self):
         return self.hand
 
 
+# A player that is completely controlled by user input
 class RealPlayer(RandomPlayer):
+    # Initially shows you your hand then will ask whether you would like the dealer (or yourself)
+    # To pick up the card. If you are the dealer it will then ask which card you want to put down
+    # Has some flexibility in inputs and gives examples but if there is an invalid input try again
     def pick_or_pass(self, up_card, dealer):
         print('Your hand is {}'.format(self.hand))
         if dealer == 1:
@@ -97,6 +111,7 @@ class RealPlayer(RandomPlayer):
                 else:
                     print('Invalid input. Try again.')
 
+    # If no one says to pick it up it will ask you to call a suit or pass. If you are the dealer you must call
     def call_or_pass(self, must_call=False):
         suits1 = ['S', 'C', 'H', 'D']
         suits1.remove(self.up_card[1])
@@ -125,6 +140,7 @@ class RealPlayer(RandomPlayer):
                 else:
                     print('Invalid suit choice. Try again.')
 
+    # Displays your hand and then asks you what you would like to lead with
     def lead_trick(self):
         print('Your hand is {}'.format(self.hand))
         play_bool = True
@@ -137,6 +153,7 @@ class RealPlayer(RandomPlayer):
             else:
                 print('Invalid card choice. Try again.')
 
+    # Displays your hand and the cards you are eligible to play and asks you what you would like to play
     def follow_trick(self, led, trump):
         playable_cards = Euchre_game.can_play(self.hand, led, trump)
         print('Your hand: {}'.format(self.hand))
@@ -151,6 +168,7 @@ class RealPlayer(RandomPlayer):
             else:
                 print('Invalid card choice. Try again.')
 
+    # If someone tells you to pick up while you are dealer it will ask you to replace the card
     def pick_and_replace(self):
         self.hand += [self.up_card]
         choice_bool = True
