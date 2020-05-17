@@ -5,6 +5,8 @@ suits = ['S', 'C', 'H', 'D']
 suits_from_letters = {'S': 'Spades', 'C': 'Clubs', 'D': 'Diamonds', 'H': 'Hearts'}
 
 
+# Asks whether you want to play or have it be only computers. It then uses all the other functions to play the game
+# until someone gets 10 points when game_score becomes false and the code exits
 def play_game():
     choice_bool = True
     while choice_bool:
@@ -33,7 +35,9 @@ def play_game():
             print('Invalid choice. Try again.')
 
 
+# Used to play each individual hand
 def play_hand(dealer, real_player=False):
+    # If there is no real player each player will be set to random player and randomly play
     if not real_player:
         trick_score = [0, 0]
         team_1 = [1, 3]
@@ -55,6 +59,9 @@ def play_hand(dealer, real_player=False):
         for i in range(4):
             winner = play_trick(winner, trump, player1, player2, player3, player4)
             trick_score = new_trick_score(winner, trick_score)
+
+    # If there is a real player player 1 is set as a real player. There are breaks in the code where you must press
+    # enter to continue to make it easier to read and follow
     else:
         trick_score = [0, 0]
         team_1 = [1, 3]
@@ -81,6 +88,7 @@ def play_hand(dealer, real_player=False):
     return hand_score(caller, trick_score, team_1)
 
 
+# Used to determine the trump using pick_or_pass and call_or_pass. If no one calls the dealer must call a suit
 def determine_trump(dealer, player1, player2, player3, player4, up_card):
     player_dictionary = {1: player1, 2: player2, 3: player3, 4: player4}
     print('{} is up'.format(up_card))
@@ -120,15 +128,19 @@ def determine_trump(dealer, player1, player2, player3, player4, up_card):
         return [trump, caller]
 
 
+# PLays the trick
 def play_trick(leader, trump, player1, player2, player3, player4):
     player_dictionary = {0: player1, 1: player2, 2: player3, 3: player4}
     player = leader - 1
     trick = ['', '', '', '']
+    # If the leader is player 1 (the user if there is one) it plays a little differently to account for the real player
     if leader == 1:
         trick[player] = player_dictionary[player].lead_trick()
         led = trick[player][1]
         for i in range(1, 4):
             trick[(player + i) % 4] = player_dictionary[(player + i) % 4].follow_trick(led, trump)
+        # After the trick it will print this to show the user what was played and then determine_trick_winner
+        # Will print who won
         print('''
                     Player3
                       {}
@@ -137,6 +149,8 @@ def play_trick(leader, trump, player1, player2, player3, player4):
                     Player1
                     '''.format(trick[2], trick[1], trick[3], trick[0]))
         winner = Euchre_game.determine_trick_winner(trick, trump, led)
+    # If the leader is not player1 (the user if there is one) it will now play up until the user print out the
+    # screen so that the user can see what is played then after the user plays it will print the results and winner
     else:
         trick[player] = player_dictionary[player].lead_trick()
         led = trick[player][1]
@@ -171,6 +185,7 @@ def play_trick(leader, trump, player1, player2, player3, player4):
     return winner
 
 
+# Updates the score of the hand
 def new_trick_score(winner, score):
     n_score = score
     if winner == 1 or winner == 3:
@@ -181,6 +196,7 @@ def new_trick_score(winner, score):
     return n_score
 
 
+# Decides based on who called and the hand score how many points each team wins
 def hand_score(caller, trick_score, team_1):
     if caller in team_1 and trick_score[0] == 5:
         print('Team 1/3 wins 2 points')
@@ -199,6 +215,8 @@ def hand_score(caller, trick_score, team_1):
         return [0, 1]
 
 
+# Updates the score of the whole game and prints it. If one reaches 10 points it will return false and
+# the while look in play_game will break
 def update_game_score(game_score, trick_score):
     game_score[0] += trick_score[0]
     game_score[1] += trick_score[1]
@@ -214,5 +232,4 @@ def update_game_score(game_score, trick_score):
 
 
 play_game()
-
 
