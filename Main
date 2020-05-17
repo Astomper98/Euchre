@@ -6,39 +6,78 @@ suits_from_letters = {'S': 'Spades', 'C': 'Clubs', 'D': 'Diamonds', 'H': 'Hearts
 
 
 def play_game():
-    game_score = [0, 0]
-    dealer = Euchre_game.decide_first_dealer()
-    while game_score:
-        game_score = update_game_score(game_score, play_hand(dealer))
-        dealer = (dealer + 1) % 5
-        print(dealer)
-        if dealer == 0:
-            dealer = 1
-    return True
+    choice_bool = True
+    while choice_bool:
+        choice = input('Would you like to have a real player in the game? (yes/no)')
+        choice = choice[0].lower()
+        if choice == 'n':
+            game_score = [0, 0]
+            dealer = Euchre_game.decide_first_dealer()
+            while game_score:
+                game_score = update_game_score(game_score, play_hand(dealer))
+                dealer = (dealer + 1) % 5
+                if dealer == 0:
+                    dealer = 1
+            choice_bool = False
+        elif choice == 'y':
+            game_score = [0, 0]
+            dealer = Euchre_game.decide_first_dealer()
+            while game_score:
+                game_score = update_game_score(game_score, play_hand(dealer, True))
+                dealer = (dealer + 1) % 5
+                if dealer == 0:
+                    dealer = 1
+                input('Press enter to continue')
+            choice_bool = False
+        else:
+            print('Invalid choice. Try again.')
 
 
-def play_hand(dealer):
-    trick_score = [0, 0]
-    team_1 = [1, 3]
-    print('player{} is the dealer'.format(dealer))
-    hands = Euchre_game.deal_cards()
-    player1 = RandomPlayer.RandomPlayer(hands[0], hands[4])
-    player2 = RandomPlayer.RandomPlayer(hands[1], hands[4])
-    player3 = RandomPlayer.RandomPlayer(hands[2], hands[4])
-    player4 = RandomPlayer.RandomPlayer(hands[3], hands[4])
+def play_hand(dealer, real_player=False):
+    if not real_player:
+        trick_score = [0, 0]
+        team_1 = [1, 3]
+        print('player{} is the dealer'.format(dealer))
+        hands = Euchre_game.deal_cards()
+        player1 = RandomPlayer.RandomPlayer(hands[0], hands[4])
+        player2 = RandomPlayer.RandomPlayer(hands[1], hands[4])
+        player3 = RandomPlayer.RandomPlayer(hands[2], hands[4])
+        player4 = RandomPlayer.RandomPlayer(hands[3], hands[4])
 
-    trump, caller = determine_trump(dealer, player1, player2, player3, player4, hands[4])
-    leader = dealer + 1
-    if leader == 5:
-        leader = 1
-    print('player{} leads'.format(leader))
-    winner = play_trick(leader, trump, player1, player2, player3, player4)
-    trick_score = new_trick_score(winner, trick_score)
-
-    for i in range(4):
-        winner = play_trick(winner, trump, player1, player2, player3, player4)
+        trump, caller = determine_trump(dealer, player1, player2, player3, player4, hands[4])
+        leader = dealer + 1
+        if leader == 5:
+            leader = 1
+        print('player{} leads'.format(leader))
+        winner = play_trick(leader, trump, player1, player2, player3, player4)
         trick_score = new_trick_score(winner, trick_score)
 
+        for i in range(4):
+            winner = play_trick(winner, trump, player1, player2, player3, player4)
+            trick_score = new_trick_score(winner, trick_score)
+    else:
+        trick_score = [0, 0]
+        team_1 = [1, 3]
+        print('player{} is the dealer'.format(dealer))
+        hands = Euchre_game.deal_cards()
+        player1 = RandomPlayer.RealPlayer(hands[0], hands[4])
+        player2 = RandomPlayer.RandomPlayer(hands[1], hands[4])
+        player3 = RandomPlayer.RandomPlayer(hands[2], hands[4])
+        player4 = RandomPlayer.RandomPlayer(hands[3], hands[4])
+
+        trump, caller = determine_trump(dealer, player1, player2, player3, player4, hands[4])
+        input('Press enter to continue')
+        leader = dealer + 1
+        if leader == 5:
+            leader = 1
+        print('player{} leads'.format(leader))
+        winner = play_trick(leader, trump, player1, player2, player3, player4)
+        trick_score = new_trick_score(winner, trick_score)
+        input('Press enter to continue')
+        for i in range(4):
+            winner = play_trick(winner, trump, player1, player2, player3, player4)
+            trick_score = new_trick_score(winner, trick_score)
+            input('Press enter to continue')
     return hand_score(caller, trick_score, team_1)
 
 
@@ -51,7 +90,7 @@ def determine_trump(dealer, player1, player2, player3, player4, up_card):
     trump = ''
     while not called and count < 4:
         print('player{}:'.format((dealer1 % 4) + 1))
-        called = player_dictionary[(dealer1 % 4) + 1].pick_or_pass(up_card)
+        called = player_dictionary[(dealer1 % 4) + 1].pick_or_pass(up_card, dealer)
         dealer1 += 1
         count += 1
     if called:
@@ -63,7 +102,7 @@ def determine_trump(dealer, player1, player2, player3, player4, up_card):
         return [trump, caller]
     while not called and count < 7:
         print('player{}:'.format((dealer1 % 4) + 1))
-        called = player_dictionary[(dealer1 % 4) + 1].call_or_pass(up_card)
+        called = player_dictionary[(dealer1 % 4) + 1].call_or_pass()
         dealer1 += 1
         count += 1
     if called:
@@ -74,7 +113,7 @@ def determine_trump(dealer, player1, player2, player3, player4, up_card):
         return [trump, caller]
     else:
         print('player{}:'.format(dealer))
-        trump = player_dictionary[dealer].call_or_pass(up_card, True)
+        trump = player_dictionary[dealer].call_or_pass(True)
         caller = dealer
         print('''{} is trump
         '''.format(suits_from_letters[trump]))
@@ -85,18 +124,50 @@ def play_trick(leader, trump, player1, player2, player3, player4):
     player_dictionary = {0: player1, 1: player2, 2: player3, 3: player4}
     player = leader - 1
     trick = ['', '', '', '']
-    trick[player] = player_dictionary[player].lead_trick()
-    led = trick[player][1]
-    for i in range(1, 4):
-        trick[(player + i) % 4] = player_dictionary[(player + i) % 4].follow_trick(led, trump)
-    print('''
-                Player3
-                  {}
-      Player2 {}      {} Player4          
-                  {} 
-                Player1
-                '''.format(trick[2], trick[1], trick[3], trick[0]))
-    winner = Euchre_game.determine_trick_winner(trick, trump, led)
+    if leader == 1:
+        trick[player] = player_dictionary[player].lead_trick()
+        led = trick[player][1]
+        for i in range(1, 4):
+            trick[(player + i) % 4] = player_dictionary[(player + i) % 4].follow_trick(led, trump)
+        print('''
+                    Player3
+                      {}
+          Player2 {}      {} Player4          
+                      {} 
+                    Player1
+                    '''.format(trick[2], trick[1], trick[3], trick[0]))
+        winner = Euchre_game.determine_trick_winner(trick, trump, led)
+    else:
+        trick[player] = player_dictionary[player].lead_trick()
+        led = trick[player][1]
+        player += 1
+        if player == 4:
+            player = 0
+        while not player == 0:
+            trick[player] = player_dictionary[player].follow_trick(led, trump)
+            player += 1
+            if player == 4:
+                player = 0
+        print('''
+                            Player3
+                              {}
+                  Player2 {}      {} Player4          
+                              {} 
+                            Player1
+                            '''.format(trick[2], trick[1], trick[3], trick[0]))
+        trick[player] = player_dictionary[player].follow_trick(led, trump)
+        player += 1
+        while not player == leader - 1:
+            trick[player] = player_dictionary[player].follow_trick(led, trump)
+            player += 1
+        print('''
+                            Player3
+                              {}
+                  Player2 {}      {} Player4          
+                              {} 
+                            Player1
+                            '''.format(trick[2], trick[1], trick[3], trick[0]))
+        winner = Euchre_game.determine_trick_winner(trick, trump, led)
     return winner
 
 
@@ -140,3 +211,8 @@ def update_game_score(game_score, trick_score):
     else:
         print('The game score is now Team 1/3: {} Team 2/4: {}'.format(game_score[0], game_score[1]))
     return game_score
+
+
+play_game()
+
+
